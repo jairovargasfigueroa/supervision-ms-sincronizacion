@@ -25,7 +25,8 @@ Devuelve `200` con `ETag: "<versionDatos>"`, o `304` sin cuerpo si la versión n
   "obras": [{
     "id": "uuid", "nombre": "Edificio Las Palmas", "ubicacion": "Av. Banzer 4to anillo",
     "partidas": [{ "id": "uuid", "codigo": "P-01", "nombre": "Losa de hormigón armado", "unidad": "m2" }],
-    "stock": [{ "materialId": "id", "cantidad": 120.0, "minimo": 100.0, "estado": "JUSTO" }]
+    "stock": [{ "materialId": "id", "cantidad": 120.0, "minimo": 100.0, "estado": "JUSTO" }],
+    "diario": [{ "id": "uuid", "fecha": "2026-11-15", "clima": "LLUVIA_LEVE", "texto": "Se vació la losa…" }]
   }],
   "materiales": [{ "id": "id", "codigo": "CEM-IP30", "nombre": "Cemento IP-30", "unidad": "bolsa", "unidadPlural": "bolsas" }]
 }
@@ -33,6 +34,7 @@ Devuelve `200` con `ETag: "<versionDatos>"`, o `304` sin cuerpo si la versión n
 
 - Se arma con el token del usuario: Obras `GET /obras?estado=EN_EJECUCION` y, por cada obra, en paralelo, Obras `GET /obras/{id}` (partidas) y Materiales `GET /obras/{id}/stock`; además Materiales `GET /materiales?soloActivos=true` (todas las páginas, de a 100).
 - Solo copia los campos de arriba. Si Materiales responde `404` al stock de una obra, envía `stock: []`.
+- `diario` (103): solo si el token tiene el rol `maestro` (roles efectivos); para los demás el campo no va y no se pide a Obras. Se arma con Obras `GET /obras/{id}/diario` sin `desde` ni `hasta` (los últimos 30 días), en paralelo con las partidas y el stock. Si Obras responde `403` o `404` para esa obra, se envía `diario: []`; otra falla cuenta como falla del paquete. Entra en `versionDatos` (ordenado por `id`).
 - `versionDatos` = SHA-256 (hexadecimal) del JSON del paquete sin `generadoEn`, con las claves ordenadas y las listas ordenadas por `id` (el stock, por `materialId`).
 - `obraActivaId` opcional (UUID); solo se guarda en `estado_dispositivo`.
 - Actualiza `estado_dispositivo` (`usuario_id`, `obra_id` si vino `obraActivaId`, `version_datos`, `ultima_sincronizacion`), también cuando responde `304`.
@@ -89,10 +91,11 @@ Roles: `maestro`, `almacenero`. Cuerpo de hasta 256 KB (más: `413 ARCHIVO_DEMAS
 |---|---|---|---|
 | `MOVIMIENTO_MATERIAL` | Materiales | `POST /movimientos` con cuerpo = `datos` | 101 |
 | `FOTO_AVANCE` | Obras | `POST /obras/{datos.obraId}/fotos` con `{ id, partidaId, claveArchivo, tomadaEn }` de `datos` (la 301 agrega `deteccion`) | 102 |
+| `ENTRADA_DIARIO` | Obras | `POST /obras/{datos.obraId}/diario` con `{ id, fecha, clima, texto }` de `datos` | 103 |
 
 - `tipo` que no está en la tabla → `ERROR` con `400 TIPO_OPERACION_DESCONOCIDO` (no se guarda en DynamoDB).
-- En los tipos que crean un registro (`MOVIMIENTO_MATERIAL`, `FOTO_AVANCE`), `idOperacion` debe ser igual a `datos.id` (en `FOTO_AVANCE`, el `fotoId`); si no → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
-- En los tipos cuya ruta lleva la obra (`FOTO_AVANCE`), sin `datos.obraId` de texto → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
+- En los tipos que crean un registro (`MOVIMIENTO_MATERIAL`, `FOTO_AVANCE`, `ENTRADA_DIARIO`), `idOperacion` debe ser igual a `datos.id` (en `FOTO_AVANCE`, el `fotoId`); si no → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
+- En los tipos cuya ruta lleva la obra (`FOTO_AVANCE`, `ENTRADA_DIARIO`), sin `datos.obraId` de texto → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
 
 #### Procesamiento de cada operación (en orden, una tras otra)
 
@@ -126,6 +129,8 @@ Errores del lote completo: `400 LOTE_INVALIDO` · `401` · `403 SIN_PERMISO` · 
 | Materiales | `POST /movimientos` | operación `MOVIMIENTO_MATERIAL` |
 | Obras | `POST /obras/{obraId}/fotos/url-subida` | `POST /fotos/url-subida` (102) |
 | Obras | `POST /obras/{obraId}/fotos` | operación `FOTO_AVANCE` (102) |
+| Obras | `POST /obras/{obraId}/diario` | operación `ENTRADA_DIARIO` (103) |
+| Obras | `GET /obras/{obraId}/diario` | `diario` de cada obra en el paquete del maestro (103; `403`/`404` → `[]`) |
 
 ## Eventos
 
