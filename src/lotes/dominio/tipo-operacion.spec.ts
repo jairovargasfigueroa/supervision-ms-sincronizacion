@@ -78,4 +78,24 @@ describe('tipos de operación', () => {
       });
     });
   });
+
+  describe('ENTRADA_DIARIO (103)', () => {
+    it('va a Obras, crea un registro y necesita datos.obraId', () => {
+      expect(TIPOS_OPERACION.ENTRADA_DIARIO).toEqual({
+        tipo: 'ENTRADA_DIARIO',
+        servicio: 'obras',
+        creaRegistro: true,
+        rutaConObra: true,
+      });
+      expect(
+        validarTipo(operacion('ENTRADA_DIARIO', { id: ID, obraId: 'obra-1' })),
+      ).toMatchObject({ valida: true });
+      expect(
+        validarTipo(operacion('ENTRADA_DIARIO', { id: ID })),
+      ).toMatchObject({
+        valida: false,
+        respuesta: { codigo: 'OPERACION_INVALIDA' },
+      });
+    });
+  });
 });

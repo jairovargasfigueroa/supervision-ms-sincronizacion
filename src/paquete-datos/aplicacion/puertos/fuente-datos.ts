@@ -1,4 +1,5 @@
 import type {
+  EntradaDiarioPaquete,
   MaterialPaquete,
   PartidaPaquete,
   StockPaquete,
@@ -41,6 +42,11 @@ export interface FuenteDatos {
   partidas(obraId: string, contexto: ContextoFuente): Promise<PartidaPaquete[]>;
   /** Materiales `GET /obras/{id}/stock`; `404` (todavía no llegó `ObraRegistrada`) → `[]`. */
   stock(obraId: string, contexto: ContextoFuente): Promise<StockPaquete[]>;
+  /** Obras `GET /obras/{id}/diario` (últimos 30 días, 103); `403` o `404` → `[]`. */
+  diario(
+    obraId: string,
+    contexto: ContextoFuente,
+  ): Promise<EntradaDiarioPaquete[]>;
   /** Materiales `GET /materiales?soloActivos=true`, todas las páginas. */
   materialesActivos(contexto: ContextoFuente): Promise<MaterialPaquete[]>;
 }

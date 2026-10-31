@@ -15,7 +15,8 @@ import type {
  * Llama al servicio dueño de cada tipo (tabla de tipos de operación, 101):
  * - `MOVIMIENTO_MATERIAL` → Materiales `POST /movimientos` con cuerpo = `datos`;
  * - `FOTO_AVANCE` (102) → Obras `POST /obras/{datos.obraId}/fotos` con
- *   `{ id, partidaId, claveArchivo, tomadaEn }` (la 301 agregará `deteccion`).
+ *   `{ id, partidaId, claveArchivo, tomadaEn }` (la 301 agregará `deteccion`);
+ * - `ENTRADA_DIARIO` (103) → Obras `POST /obras/{datos.obraId}/diario` con `{ id, fecha, clima, texto }`.
  */
 @Injectable()
 export class DespachadorRest implements Despachador {
@@ -38,6 +39,14 @@ export class DespachadorRest implements Despachador {
         return this.obras.registrarFoto(
           String(obraId),
           { id, partidaId, claveArchivo, tomadaEn },
+          contexto,
+        );
+      }
+      case 'ENTRADA_DIARIO': {
+        const { id, obraId, fecha, clima, texto } = operacion.datos;
+        return this.obras.registrarDiario(
+          String(obraId),
+          { id, fecha, clima, texto },
           contexto,
         );
       }

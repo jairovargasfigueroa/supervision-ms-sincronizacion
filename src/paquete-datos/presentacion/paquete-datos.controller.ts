@@ -1,6 +1,7 @@
 import { Controller, Get, Headers, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { Roles } from '../../compartido/infraestructura/auth/roles.decorator.js';
+import { rolesEfectivos } from '../../compartido/infraestructura/auth/roles-efectivos.js';
 import { UsuarioActual } from '../../compartido/infraestructura/auth/usuario-actual.decorator.js';
 import type { UsuarioAutenticado } from '../../compartido/infraestructura/auth/usuario-autenticado.js';
 import { Dispositivo } from '../../compartido/infraestructura/http/dispositivo.decorator.js';
@@ -31,6 +32,10 @@ export class PaqueteDatosController {
       usuarioId: usuario.id,
       idDispositivo,
       obraActivaId: consulta.obraActivaId,
+      // 103: el diario de cada obra va solo para el maestro.
+      incluirDiario: rolesEfectivos(usuario.roles, usuario.azp).includes(
+        'maestro',
+      ),
       contexto: { token: usuario.token, requestId },
     });
     respuesta.setHeader('ETag', `"${paquete.versionDatos}"`);

@@ -17,7 +17,7 @@ export interface DefinicionTipo {
 
 /**
  * Tabla de tipos de operación y servicio destino (101, «Tipos de operación y servicio destino»).
- * Las funcionalidades 102 (`FOTO_AVANCE`) y 103 (`ENTRADA_DIARIO`) agregan sus filas.
+ * La 102 agregó `FOTO_AVANCE` y la 103, `ENTRADA_DIARIO`.
  */
 export const TIPOS_OPERACION: Readonly<Record<string, DefinicionTipo>> = {
   // Materiales POST /movimientos con cuerpo = datos
@@ -29,6 +29,13 @@ export const TIPOS_OPERACION: Readonly<Record<string, DefinicionTipo>> = {
   // 102: Obras POST /obras/{datos.obraId}/fotos con { id, partidaId, claveArchivo, tomadaEn }
   FOTO_AVANCE: {
     tipo: 'FOTO_AVANCE',
+    servicio: 'obras',
+    creaRegistro: true,
+    rutaConObra: true,
+  },
+  // 103: Obras POST /obras/{datos.obraId}/diario con { id, fecha, clima, texto }
+  ENTRADA_DIARIO: {
+    tipo: 'ENTRADA_DIARIO',
     servicio: 'obras',
     creaRegistro: true,
     rutaConObra: true,

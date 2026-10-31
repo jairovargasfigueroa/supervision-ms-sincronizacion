@@ -6,7 +6,7 @@ Puerta de la app de obra para trabajar sin señal (capa 1). Se crea en la funcio
 
 - Recibir lotes de operaciones registradas en el celular (`POST /lotes`) y procesar cada una **una sola vez**: guarda cada `idOperacion` en DynamoDB («guardar solo si no existe») y, si se repite, devuelve la respuesta guardada sin volver a llamar al servicio dueño.
 - Repartir cada operación por REST al servicio dueño (Materiales u Obras) con el token del usuario y clasificar su respuesta en `PROCESADO`, `ERROR` (rechazo definitivo) o `REINTENTAR`.
-- Armar el paquete de datos que la app guarda para trabajar sin señal (`GET /paquete-datos`): obras asignadas en ejecución con sus partidas y su stock, y materiales activos; con versión (`ETag`) para no volver a descargar lo que no cambió.
+- Armar el paquete de datos que la app guarda para trabajar sin señal (`GET /paquete-datos`): obras asignadas en ejecución con sus partidas, su stock y, para el maestro, su diario de los últimos 30 días (103), y materiales activos; con versión (`ETag`) para no volver a descargar lo que no cambió.
 - Pedir a Obras la URL firmada de S3 para subir una foto de avance (`POST /fotos/url-subida`, 102): la foto va directo del celular a S3 y no pasa por Sincronización.
 - Recordar, por celular, el último usuario, la obra con la que trabaja, la última sincronización y la versión de datos entregada (`estado_dispositivo`).
 
@@ -14,8 +14,8 @@ Puerta de la app de obra para trabajar sin señal (capa 1). Se crea en la funcio
 
 | Caso de uso | Quién | Etapa |
 |---|---|---|
-| Procesar un lote de operaciones (`ProcesarLote`) | App (maestro, almacenero) | 101 (`MOVIMIENTO_MATERIAL`), 102 (`FOTO_AVANCE`); 103 agrega `ENTRADA_DIARIO` |
-| Armar el paquete de datos (`ArmarPaqueteDatos`) | App (maestro, almacenero) | 101; 103 agrega el diario |
+| Procesar un lote de operaciones (`ProcesarLote`) | App (maestro, almacenero) | 101 (`MOVIMIENTO_MATERIAL`), 102 (`FOTO_AVANCE`), 103 (`ENTRADA_DIARIO`) |
+| Armar el paquete de datos (`ArmarPaqueteDatos`) | App (maestro, almacenero) | 101; 103 (diario de cada obra para el maestro) |
 | Pedir la URL de subida de una foto (`PedirUrlSubida`) | App (maestro) | 102 |
 
 ## Qué no hace

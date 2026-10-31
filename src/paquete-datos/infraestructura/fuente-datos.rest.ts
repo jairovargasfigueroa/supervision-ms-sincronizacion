@@ -12,6 +12,7 @@ import {
   type ObraEnEjecucion,
 } from '../aplicacion/puertos/fuente-datos.js';
 import type {
+  EntradaDiarioPaquete,
   MaterialPaquete,
   PartidaPaquete,
   StockPaquete,
@@ -83,6 +84,27 @@ export class FuenteDatosRest implements FuenteDatos {
       cantidad: numero('materiales', fila.cantidad),
       minimo: numero('materiales', fila.minimo),
       estado: texto('materiales', fila.estado),
+    }));
+  }
+
+  async diario(
+    obraId: string,
+    contexto: ContextoFuente,
+  ): Promise<EntradaDiarioPaquete[]> {
+    const resultado = await this.obras.listarDiario(obraId, contexto);
+    // 103: si Obras no deja ver el diario de esa obra, va vacío (no falla el paquete).
+    if (
+      resultado.tipo === 'RESPUESTA' &&
+      (resultado.status === 403 || resultado.status === 404)
+    ) {
+      return [];
+    }
+    const cuerpo = exigirExito('obras', 'GET /obras/{id}/diario', resultado);
+    return lista('obras', 'GET /obras/{id}/diario', cuerpo).map((entrada) => ({
+      id: texto('obras', entrada.id),
+      fecha: texto('obras', entrada.fecha),
+      clima: texto('obras', entrada.clima),
+      texto: texto('obras', entrada.texto),
     }));
   }
 
