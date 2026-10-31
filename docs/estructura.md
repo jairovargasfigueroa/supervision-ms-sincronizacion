@@ -57,12 +57,12 @@ src/
     presentacion/   fotos.controller.ts (@Roles('maestro')), dto/url-subida.dto.ts (obraId y fotoId UUID)
     fotos.module.ts
   paquete-datos/                   # GET /paquete-datos
-    dominio/        paquete-datos.ts (tipos y ordenarContenido: listas por id, stock por materialId), version-datos.ts (jsonCanonico y calcularVersionDatos: SHA-256)
+    dominio/        paquete-datos.ts (tipos, con diario opcional de la 103, y ordenarContenido: listas por id, stock por materialId), version-datos.ts (jsonCanonico y calcularVersionDatos: SHA-256)
     aplicacion/
-      puertos/      fuente-datos.ts (obras en ejecución, partidas, stock con 404 → [], materiales activos; FuenteNoDisponibleError)
+      puertos/      fuente-datos.ts (obras en ejecución, partidas, stock con 404 → [], diario con 403/404 → [], materiales activos; FuenteNoDisponibleError)
       casos-uso/    armar-paquete-datos.caso-uso.ts
     infraestructura/ fuente-datos.rest.ts (Obras y Materiales con el token del usuario; solo copia los campos del paquete; todas las páginas de materiales)
-    presentacion/   paquete-datos.controller.ts (ETag, If-None-Match → 304), dto/paquete-datos.dto.ts (obraActivaId UUID opcional)
+    presentacion/   paquete-datos.controller.ts (ETag, If-None-Match → 304; diario solo si rolesEfectivos incluye maestro), dto/paquete-datos.dto.ts (obraActivaId UUID opcional)
     paquete-datos.module.ts
 test/
   utilidades/tokens-prueba.ts      # par de claves RSA de prueba, JWKS local y tokens firmados por rol
@@ -77,6 +77,7 @@ test/
   lotes-diario.e2e-spec.ts         # ENTRADA_DIARIO (103): llega a Obras con id, fecha, clima y texto, repetida, rechazos, sin obraId
   lotes-fotos.e2e-spec.ts          # FOTO_AVANCE (102): llega a Obras con claveArchivo, repetida sin segunda llamada, 422, sin obraId, lote mixto
   lotes.e2e-spec.ts                # POST /lotes: nueva, repetida, simultánea, rechazo, reintento, PROCESANDO abandonado, ajena, lote inválido, tipo desconocido, presupuesto, estado_dispositivo
+  paquete-diario.e2e-spec.ts       # diario en el paquete (103): solo maestro, campos, 403/404 → [], versión, 5xx → 503
   paquete-datos.e2e-spec.ts        # GET /paquete-datos: campos, orden, ETag y 304, versión, páginas, 503, 504, stock vacío ante 404, estado_dispositivo, roles
   seguridad.e2e-spec.ts            # /salud, token, rol, X-Dispositivo-Id y X-Request-Id (sin DynamoDB; controlador solo de la prueba)
   *.e2e-spec.ts

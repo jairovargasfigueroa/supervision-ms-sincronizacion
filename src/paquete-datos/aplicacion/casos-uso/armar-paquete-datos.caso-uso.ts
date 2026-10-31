@@ -20,12 +20,14 @@ export interface EntradaPaquete {
   usuarioId: string;
   idDispositivo: string;
   obraActivaId?: string;
+  /** El usuario tiene el rol `maestro` (roles efectivos): cada obra lleva su `diario` (103). */
+  incluirDiario: boolean;
   contexto: ContextoFuente;
 }
 
 /**
  * `GET /paquete-datos` (101): arma el paquete con el token del usuario (obras en ejecución con
- * sus partidas y su stock, y materiales activos), calcula `versionDatos` y actualiza
+ * sus partidas, su stock y, para el maestro, su diario, y materiales activos), calcula `versionDatos` y actualiza
  * `estado_dispositivo`. Si Obras o Materiales fallan: `503 SERVICIO_NO_DISPONIBLE` o
  * `504 TIEMPO_AGOTADO` (la app conserva los datos que ya tenía).
  */
@@ -45,14 +47,23 @@ export class ArmarPaqueteDatosCasoUso {
     try {
       const [obras, materiales] = await Promise.all([
         this.fuente.obrasEnEjecucion(contexto).then((obras) =>
-          // Por cada obra, en paralelo: partidas (Obras) y stock (Materiales).
+          // Por cada obra, en paralelo: partidas (Obras), stock (Materiales) y, para el maestro,
+          // el diario (Obras, 103).
           Promise.all(
             obras.map(async (obra) => {
-              const [partidas, stock] = await Promise.all([
+              const [partidas, stock, diario] = await Promise.all([
                 this.fuente.partidas(obra.id, contexto),
                 this.fuente.stock(obra.id, contexto),
+                entrada.incluirDiario
+                  ? this.fuente.diario(obra.id, contexto)
+                  : undefined,
               ]);
-              return { ...obra, partidas, stock };
+              return {
+                ...obra,
+                partidas,
+                stock,
+                ...(diario ? { diario } : {}),
+              };
             }),
           ),
         ),

@@ -115,4 +115,22 @@ describe('versionDatos', () => {
       calcularVersionDatos(contenido()),
     );
   });
+
+  it('el diario (103) entra en la versión y no depende de su orden', () => {
+    const conDiario = (orden: 'normal' | 'invertido') => {
+      const c = contenido();
+      const diario = [
+        { id: 'd1', fecha: '2026-11-14', clima: 'SOLEADO', texto: 'Día uno.' },
+        { id: 'd2', fecha: '2026-11-15', clima: 'NUBLADO', texto: 'Día dos.' },
+      ];
+      c.obras[0].diario = orden === 'normal' ? diario : diario.reverse();
+      return c;
+    };
+    expect(calcularVersionDatos(conDiario('normal'))).toBe(
+      calcularVersionDatos(conDiario('invertido')),
+    );
+    expect(calcularVersionDatos(conDiario('normal'))).not.toBe(
+      calcularVersionDatos(contenido()),
+    );
+  });
 });

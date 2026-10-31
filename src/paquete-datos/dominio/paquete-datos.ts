@@ -13,12 +13,22 @@ export interface StockPaquete {
   estado: string;
 }
 
+/** Entrada del diario de obra de los últimos 30 días (103). */
+export interface EntradaDiarioPaquete {
+  id: string;
+  fecha: string;
+  clima: string;
+  texto: string;
+}
+
 export interface ObraPaquete {
   id: string;
   nombre: string;
   ubicacion: string;
   partidas: PartidaPaquete[];
   stock: StockPaquete[];
+  /** Solo si el usuario tiene el rol `maestro` (103); para los demás el campo no va. */
+  diario?: EntradaDiarioPaquete[];
 }
 
 export interface MaterialPaquete {
@@ -58,6 +68,9 @@ export function ordenarContenido(
         ...obra,
         partidas: [...obra.partidas].sort(porClave((p) => p.id)),
         stock: [...obra.stock].sort(porClave((s) => s.materialId)),
+        ...(obra.diario
+          ? { diario: [...obra.diario].sort(porClave((e) => e.id)) }
+          : {}),
       }))
       .sort(porClave((o) => o.id)),
     materiales: [...contenido.materiales].sort(porClave((m) => m.id)),
