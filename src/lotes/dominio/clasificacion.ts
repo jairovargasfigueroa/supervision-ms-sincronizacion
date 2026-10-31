@@ -1,13 +1,14 @@
-import { esProblema, problema, type Problema } from './problema.js';
+import {
+  esProblema,
+  problema,
+  type Problema,
+} from '../../compartido/dominio/problema.js';
+import type { RespuestaDuenio } from '../../compartido/dominio/respuesta-duenio.js';
 
 /** Resultado de una operación para la app (101). */
 export type EstadoResultado = 'PROCESADO' | 'ERROR' | 'REINTENTAR';
 
-/** Lo que pasó al llamar al servicio dueño (sin depender del cliente HTTP). */
-export type RespuestaDuenio =
-  | { tipo: 'RESPUESTA'; status: number; cuerpo: unknown }
-  | { tipo: 'TIEMPO_AGOTADO' }
-  | { tipo: 'ERROR_RED' };
+export type { RespuestaDuenio } from '../../compartido/dominio/respuesta-duenio.js';
 
 export type Clasificacion =
   /** El dueño lo aceptó (`2xx`): se guarda `PROCESADO` con su respuesta. */

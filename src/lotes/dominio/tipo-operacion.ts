@@ -1,4 +1,4 @@
-import { problema, type Problema } from './problema.js';
+import { problema, type Problema } from '../../compartido/dominio/problema.js';
 
 export type ServicioDestino = 'materiales' | 'obras';
 

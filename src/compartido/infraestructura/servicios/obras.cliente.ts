@@ -13,6 +13,34 @@ export class ObrasCliente {
     return this.cliente.llamar('GET', '/obras?estado=EN_EJECUCION', contexto);
   }
 
+  /** `POST /obras/{obraId}/fotos/url-subida` con `{ fotoId }` (005; lo pide la app por la 102). */
+  pedirUrlSubida(
+    obraId: string,
+    fotoId: string,
+    contexto: ContextoLlamada,
+  ): Promise<ResultadoLlamada> {
+    return this.cliente.llamar(
+      'POST',
+      `/obras/${encodeURIComponent(obraId)}/fotos/url-subida`,
+      contexto,
+      { fotoId },
+    );
+  }
+
+  /** `POST /obras/{obraId}/fotos` (005; operación `FOTO_AVANCE` de la 102). */
+  registrarFoto(
+    obraId: string,
+    cuerpo: unknown,
+    contexto: ContextoLlamada,
+  ): Promise<ResultadoLlamada> {
+    return this.cliente.llamar(
+      'POST',
+      `/obras/${encodeURIComponent(obraId)}/fotos`,
+      contexto,
+      cuerpo,
+    );
+  }
+
   /** `GET /obras/{id}`: detalle con las partidas. */
   obtener(
     obraId: string,
