@@ -21,7 +21,7 @@ src/
                     usuario-autenticado.ts (id, nombre, roles, azp y token crudo para reenviarlo), roles.guard.ts (global, después de JwtGuard),
                     roles.decorator.ts (@Roles), roles-efectivos.ts, usuario-actual.decorator.ts (@UsuarioActual)
       http/         problem-details.filter.ts, request-id.middleware.ts, dispositivo.guard.ts (X-Dispositivo-Id: 400 DISPOSITIVO_REQUERIDO),
-                    dispositivo.decorator.ts (@Dispositivo), solicitud.ts, validacion.ts
+                    dispositivo.decorator.ts (@Dispositivo), request-id.decorator.ts (@RequestId), solicitud.ts, validacion.ts
       dynamodb/     dynamodb.module.ts (DynamoDBDocumentClient con DYNAMODB_ENDPOINT), tablas.ts (definición de las tablas y crearTablas si DYNAMODB_CREAR_TABLAS=true)
       servicios/    cliente-rest.ts (llamar: token del usuario, X-Request-Id, tiempo máximo; devuelve RespuestaServicio o FalloLlamada),
                     obras.cliente.ts, materiales.cliente.ts
@@ -56,6 +56,7 @@ test/
   utilidades/servidor-simulado.ts  # servidor HTTP de prueba que simula a Obras y Materiales (respuestas por ruta, cuenta las llamadas, demora)
   utilidades/dynamodb-prueba.ts    # cliente de DynamoDB Local con tablas de prueba (prefijo por archivo) y limpieza
   utilidades/app-prueba.ts         # app HTTP con tokens de prueba, servidores simulados y DynamoDB Local
+  seguridad.e2e-spec.ts            # /salud, token, rol, X-Dispositivo-Id y X-Request-Id (sin DynamoDB; controlador solo de la prueba)
   *.e2e-spec.ts
 src/**/*.spec.ts                   # unitarias junto al archivo
 ```
