@@ -12,6 +12,6 @@ Marca cada tarea al terminarla (con sus pruebas y su commit).
 - [x] Clientes REST de Obras y Materiales con el token del usuario, `X-Request-Id` y tiempo máximo de 5 s
 - [x] Dominio: clasificación de respuestas del servicio dueño (`PROCESADO`, `ERROR`, `REINTENTAR`) y tabla de tipos de operación (`MOVIMIENTO_MATERIAL`)
 - [x] `POST /lotes`: validación del lote, *conditional put*, respuesta guardada para repetidas, toma de `PROCESANDO` abandonado, borrado condicionado al reintentar, `OPERACION_AJENA`, presupuesto de 20 s
-- [ ] `GET /paquete-datos`: armado con Obras y Materiales, `versionDatos` (SHA-256 canónico), `ETag` / `304`, `503` si un servicio falla; actualización de `estado_dispositivo`
+- [x] `GET /paquete-datos`: armado con Obras y Materiales, `versionDatos` (SHA-256 canónico), `ETag` / `304`, `503` si un servicio falla; actualización de `estado_dispositivo`
 - [ ] Compresión gzip de las respuestas y límite de 256 KB en el cuerpo de `POST /lotes`
 - [ ] Pruebas de la spec (con DynamoDB Local y servidores simulados de Obras y Materiales)

@@ -1,10 +1,12 @@
 import type { DynamicModule, INestApplication, Type } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { CompartidoModule } from '../../src/compartido/compartido.module.js';
 import { CONJUNTO_CLAVES } from '../../src/compartido/infraestructura/auth/validador-token.js';
 import { DynamoDBModule } from '../../src/compartido/infraestructura/dynamodb/dynamodb.module.js';
 import { ServiciosModule } from '../../src/compartido/infraestructura/servicios/servicios.module.js';
+import { configurarApp } from '../../src/configurar-app.js';
 import { crearDynamoPrueba, type DynamoPrueba } from './dynamodb-prueba.js';
 import { ServidorSimulado } from './servidor-simulado.js';
 import {
@@ -67,7 +69,10 @@ export async function crearAppPrueba(
     .overrideProvider(CONJUNTO_CLAVES)
     .useValue(claves.jwks)
     .compile();
-  const app = modulo.createNestApplication({ logger: false });
+  const app = modulo.createNestApplication<NestExpressApplication>({
+    logger: false,
+  });
+  configurarApp(app);
   await app.init();
   return {
     app,

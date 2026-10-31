@@ -4,6 +4,7 @@ import { CompartidoModule } from './compartido/compartido.module.js';
 import { DynamoDBModule } from './compartido/infraestructura/dynamodb/dynamodb.module.js';
 import { ServiciosModule } from './compartido/infraestructura/servicios/servicios.module.js';
 import { LotesModule } from './lotes/lotes.module.js';
+import { PaqueteDatosModule } from './paquete-datos/paquete-datos.module.js';
 import { SaludModule } from './salud/salud.module.js';
 
 @Module({
@@ -15,6 +16,7 @@ import { SaludModule } from './salud/salud.module.js';
     ServiciosModule,
     SaludModule,
     LotesModule,
+    PaqueteDatosModule,
   ],
 })
 export class AppModule {}

@@ -10,7 +10,8 @@ NestJS 12, `@nestjs/config`, `class-validator` 0.15 + `class-transformer` 0.5 (c
 
 ```
 src/
-  main.ts                          # gzip, cuerpo JSON de 256 KB (413), registros, puerto 8084
+  main.ts                          # registros, configurarApp, puerto 8084
+  configurar-app.ts                # ajustes de Express que comparten main.ts y las pruebas (sin ETag automático; gzip y 256 KB en la 101)
   app.module.ts
   configuracion.ts                 # leerConfiguracion: variables de entorno ya convertidas y con valores por defecto (tiempos, URLs, DynamoDB, nombres de tablas)
   compartido/
@@ -47,12 +48,12 @@ src/
       lotes.controller.ts (cuerpo sin tipo: lo valida validarLote, no el ValidationPipe global), dto/lote.dto.ts (validarLote: 400 LOTE_INVALIDO, 1 a 20, sin ids repetidos), dto/resultado-lote.respuesta.ts
     lotes.module.ts
   paquete-datos/                   # GET /paquete-datos
-    dominio/        paquete-datos.ts (tipos), version-datos.ts (SHA-256 del JSON canónico)
+    dominio/        paquete-datos.ts (tipos y ordenarContenido: listas por id, stock por materialId), version-datos.ts (jsonCanonico y calcularVersionDatos: SHA-256)
     aplicacion/
-      puertos/      fuente-datos.ts (obras en ejecución, obra con partidas, stock, materiales activos)
+      puertos/      fuente-datos.ts (obras en ejecución, partidas, stock con 404 → [], materiales activos; FuenteNoDisponibleError)
       casos-uso/    armar-paquete-datos.caso-uso.ts
-    infraestructura/ fuente-datos.rest.ts (Obras y Materiales con el token del usuario)
-    presentacion/   paquete-datos.controller.ts (ETag / If-None-Match / 304), dto/paquete-datos.dto.ts
+    infraestructura/ fuente-datos.rest.ts (Obras y Materiales con el token del usuario; solo copia los campos del paquete; todas las páginas de materiales)
+    presentacion/   paquete-datos.controller.ts (ETag, If-None-Match → 304), dto/paquete-datos.dto.ts (obraActivaId UUID opcional)
     paquete-datos.module.ts
 test/
   utilidades/tokens-prueba.ts      # par de claves RSA de prueba, JWKS local y tokens firmados por rol
@@ -62,6 +63,7 @@ test/
   clientes-rest.e2e-spec.ts        # ObrasCliente y MaterialesCliente contra servidores simulados: token, X-Request-Id, rutas, tiempo agotado, error de red
   dynamodb.e2e-spec.ts             # creación de las tablas, claves, TTL, reinicio y DYNAMODB_CREAR_TABLAS=false (DynamoDB Local)
   lotes.e2e-spec.ts                # POST /lotes: nueva, repetida, simultánea, rechazo, reintento, PROCESANDO abandonado, ajena, lote inválido, tipo desconocido, presupuesto, estado_dispositivo
+  paquete-datos.e2e-spec.ts        # GET /paquete-datos: campos, orden, ETag y 304, versión, páginas, 503, 504, stock vacío ante 404, estado_dispositivo, roles
   seguridad.e2e-spec.ts            # /salud, token, rol, X-Dispositivo-Id y X-Request-Id (sin DynamoDB; controlador solo de la prueba)
   *.e2e-spec.ts
 src/**/*.spec.ts                   # unitarias junto al archivo
