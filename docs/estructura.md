@@ -36,14 +36,15 @@ src/
   lotes/                           # POST /lotes
     dominio/        tipo-operacion.ts (TIPOS_OPERACION: tipo → servicio destino y creaRegistro; validarTipo: TIPO_OPERACION_DESCONOCIDO, OPERACION_INVALIDA),
                     clasificacion.ts (clasificarRespuesta: PROCESADO, ERROR, REINTENTAR), problema.ts (Problem Details propios y genéricos),
-                    operacion.ts (Operacion, ResultadoOperacion, OperacionProcesada, estados), presupuesto.ts (Presupuesto del lote)
+                    operacion.ts (OperacionProcesada, ResultadoOperacion, calcularExpiraEn: +30 días, decidirAnteExistente: AJENA, REPETIDA, TOMAR si pasó 60 s, EN_PROCESO),
+                    presupuesto.ts (Presupuesto del lote: 20 s)
     aplicacion/
-      puertos/      operacion-procesada.repositorio.ts (crearSiNoExiste, leer, tomar, completar, liberar), despachador.ts (enviar(operacion, contexto))
-      casos-uso/    procesar-lote.caso-uso.ts
+      puertos/      operacion-procesada.repositorio.ts (crearSiNoExiste, leer, tomar, completar, liberar), despachador.ts (enviar(definicion, operacion, contexto))
+      casos-uso/    procesar-lote.caso-uso.ts (en orden; DynamoDB caído → REINTENTAR 503; al final, estado_dispositivo)
     infraestructura/
       operacion-procesada.repositorio.dynamo.ts, despachador-rest.ts (MOVIMIENTO_MATERIAL → Materiales POST /movimientos)
     presentacion/
-      lotes.controller.ts, dto/lote.dto.ts, dto/resultado-lote.respuesta.ts
+      lotes.controller.ts (cuerpo sin tipo: lo valida validarLote, no el ValidationPipe global), dto/lote.dto.ts (validarLote: 400 LOTE_INVALIDO, 1 a 20, sin ids repetidos), dto/resultado-lote.respuesta.ts
     lotes.module.ts
   paquete-datos/                   # GET /paquete-datos
     dominio/        paquete-datos.ts (tipos), version-datos.ts (SHA-256 del JSON canónico)
@@ -60,6 +61,7 @@ test/
   utilidades/app-prueba.ts         # app HTTP con tokens de prueba, servidores simulados y DynamoDB Local
   clientes-rest.e2e-spec.ts        # ObrasCliente y MaterialesCliente contra servidores simulados: token, X-Request-Id, rutas, tiempo agotado, error de red
   dynamodb.e2e-spec.ts             # creación de las tablas, claves, TTL, reinicio y DYNAMODB_CREAR_TABLAS=false (DynamoDB Local)
+  lotes.e2e-spec.ts                # POST /lotes: nueva, repetida, simultánea, rechazo, reintento, PROCESANDO abandonado, ajena, lote inválido, tipo desconocido, presupuesto, estado_dispositivo
   seguridad.e2e-spec.ts            # /salud, token, rol, X-Dispositivo-Id y X-Request-Id (sin DynamoDB; controlador solo de la prueba)
   *.e2e-spec.ts
 src/**/*.spec.ts                   # unitarias junto al archivo

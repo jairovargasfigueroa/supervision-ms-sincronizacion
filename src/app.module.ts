@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CompartidoModule } from './compartido/compartido.module.js';
 import { DynamoDBModule } from './compartido/infraestructura/dynamodb/dynamodb.module.js';
 import { ServiciosModule } from './compartido/infraestructura/servicios/servicios.module.js';
+import { LotesModule } from './lotes/lotes.module.js';
 import { SaludModule } from './salud/salud.module.js';
 
 @Module({
@@ -13,6 +14,7 @@ import { SaludModule } from './salud/salud.module.js';
     DynamoDBModule,
     ServiciosModule,
     SaludModule,
+    LotesModule,
   ],
 })
 export class AppModule {}

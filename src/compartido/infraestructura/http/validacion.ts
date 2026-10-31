@@ -29,7 +29,10 @@ export function crearValidationPipe(): ValidationPipe {
   });
 }
 
-function aplanar(errores: ValidationError[], prefijo = ''): ErrorCampo[] {
+export function aplanar(
+  errores: ValidationError[],
+  prefijo = '',
+): ErrorCampo[] {
   return errores.flatMap((error) => {
     const campo = prefijo ? `${prefijo}.${error.property}` : error.property;
     const propios = Object.values(error.constraints ?? {}).map((mensaje) => ({
