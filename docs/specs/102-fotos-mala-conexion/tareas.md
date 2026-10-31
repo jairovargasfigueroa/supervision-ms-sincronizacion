@@ -6,4 +6,4 @@ Marca cada tarea al terminarla (con sus pruebas y su commit).
 
 - [x] `POST /fotos/url-subida`: reenvío a Obras con el token del usuario, errores del dueño tal cual, `503` y `504`
 - [x] Tipo `FOTO_AVANCE` en `POST /lotes` (Obras `POST /obras/{obraId}/fotos`)
-- [ ] Actualizar `docs/contratos.md` del proyecto y pruebas de la spec (servicios dueños simulados)
+- [x] Actualizar `docs/contratos.md` del proyecto y pruebas de la spec (servicios dueños simulados)
