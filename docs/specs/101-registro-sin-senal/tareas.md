@@ -5,7 +5,7 @@ Requisitos y diseño: `docs/specs/101-registro-sin-senal/` de la carpeta que agr
 Marca cada tarea al terminarla (con sus pruebas y su commit).
 
 - [x] Crear el proyecto `services/sincronizacion` con NestJS 12 (módulos ES, Vitest, oxlint, Prettier, como Materiales), puerto `8084`, `.env.example` y `.gitignore` con `.env`; repositorio de GitHub `supervision-ms-sincronizacion`, rama `main`
-- [ ] `CLAUDE.md` del proyecto y `docs/` (`servicio.md`, `datos.md`, `contratos.md`, `specs/README.md`) a partir del diseño de la 101; actualizar la fila del mapa de proyectos en el `CLAUDE.md` general (quitar «todavía no existe»)
+- [x] `CLAUDE.md` del proyecto y `docs/` (`servicio.md`, `datos.md`, `contratos.md`, `specs/README.md`) a partir del diseño de la 101; actualizar la fila del mapa de proyectos en el `CLAUDE.md` general (quitar «todavía no existe»)
 - [ ] Estructura Clean (`dominio`, `aplicacion`, `infraestructura`, `presentacion`) y `GET /salud`
 - [ ] Validación del token con `jose` (JWKS, emisor, audiencia `plataforma-api`), `RolesGuard` con `maestro` y `almacenero`; encabezados `X-Dispositivo-Id` y `X-Request-Id`; errores Problem Details
 - [ ] Cliente DynamoDB (AWS SDK v3) con `DYNAMODB_ENDPOINT`; creación de las tablas `operacion_procesada` (TTL en `expira_en`) y `estado_dispositivo` cuando `DYNAMODB_CREAR_TABLAS=true`
