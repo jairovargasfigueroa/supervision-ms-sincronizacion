@@ -24,7 +24,7 @@ src/
                     dispositivo.decorator.ts (@Dispositivo), request-id.decorator.ts (@RequestId), solicitud.ts, validacion.ts
       dynamodb/     dynamodb.module.ts (global: CLIENTE_DYNAMODB, DOCUMENTOS_DYNAMODB, TABLAS; crea las tablas al iniciar si DYNAMODB_CREAR_TABLAS=true),
                     tablas.ts (definiciones on demand y crearTablas: idempotente, TTL en expira_en)
-      servicios/    cliente-rest.ts (llamar: token del usuario, X-Request-Id, tiempo máximo; devuelve RespuestaServicio o FalloLlamada),
+      servicios/    servicios.module.ts (global), cliente-rest.ts (llamar: token del usuario, X-Request-Id, tiempo máximo; devuelve ResultadoLlamada: RESPUESTA, TIEMPO_AGOTADO o ERROR_RED),
                     obras.cliente.ts, materiales.cliente.ts
   salud/                           # GET /salud (@Publico, no toca DynamoDB ni los servicios dueños)
     presentacion/   salud.controller.ts
@@ -57,6 +57,7 @@ test/
   utilidades/servidor-simulado.ts  # servidor HTTP de prueba que simula a Obras y Materiales (respuestas por ruta, cuenta las llamadas, demora)
   utilidades/dynamodb-prueba.ts    # cliente de DynamoDB Local con tablas de prueba (prefijo por archivo) y limpieza
   utilidades/app-prueba.ts         # app HTTP con tokens de prueba, servidores simulados y DynamoDB Local
+  clientes-rest.e2e-spec.ts        # ObrasCliente y MaterialesCliente contra servidores simulados: token, X-Request-Id, rutas, tiempo agotado, error de red
   dynamodb.e2e-spec.ts             # creación de las tablas, claves, TTL, reinicio y DYNAMODB_CREAR_TABLAS=false (DynamoDB Local)
   seguridad.e2e-spec.ts            # /salud, token, rol, X-Dispositivo-Id y X-Request-Id (sin DynamoDB; controlador solo de la prueba)
   *.e2e-spec.ts
