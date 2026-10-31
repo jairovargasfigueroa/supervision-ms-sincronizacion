@@ -12,7 +12,7 @@ NestJS 12, `@nestjs/config`, `class-validator` 0.15 + `class-transformer` 0.5 (c
 src/
   main.ts                          # gzip, cuerpo JSON de 256 KB (413), registros, puerto 8084
   app.module.ts
-  configuracion.ts                 # lectura tipada de las variables de entorno (tiempos, URLs, DynamoDB)
+  configuracion.ts                 # leerConfiguracion: variables de entorno ya convertidas y con valores por defecto (tiempos, URLs, DynamoDB, nombres de tablas)
   compartido/
     compartido.module.ts           # JWKS (CONJUNTO_CLAVES), ValidadorToken, JwtGuard y RolesGuard (APP_GUARD), DispositivoGuard, ValidationPipe (APP_PIPE), filtro (APP_FILTER), middleware X-Request-Id
     dominio/        error-aplicacion.ts (ErrorAplicacion(codigo, mensaje, status))
@@ -22,7 +22,8 @@ src/
                     roles.decorator.ts (@Roles), roles-efectivos.ts, usuario-actual.decorator.ts (@UsuarioActual)
       http/         problem-details.filter.ts, request-id.middleware.ts, dispositivo.guard.ts (X-Dispositivo-Id: 400 DISPOSITIVO_REQUERIDO),
                     dispositivo.decorator.ts (@Dispositivo), request-id.decorator.ts (@RequestId), solicitud.ts, validacion.ts
-      dynamodb/     dynamodb.module.ts (DynamoDBDocumentClient con DYNAMODB_ENDPOINT), tablas.ts (definición de las tablas y crearTablas si DYNAMODB_CREAR_TABLAS=true)
+      dynamodb/     dynamodb.module.ts (global: CLIENTE_DYNAMODB, DOCUMENTOS_DYNAMODB, TABLAS; crea las tablas al iniciar si DYNAMODB_CREAR_TABLAS=true),
+                    tablas.ts (definiciones on demand y crearTablas: idempotente, TTL en expira_en)
       servicios/    cliente-rest.ts (llamar: token del usuario, X-Request-Id, tiempo máximo; devuelve RespuestaServicio o FalloLlamada),
                     obras.cliente.ts, materiales.cliente.ts
   salud/                           # GET /salud (@Publico, no toca DynamoDB ni los servicios dueños)
@@ -56,6 +57,7 @@ test/
   utilidades/servidor-simulado.ts  # servidor HTTP de prueba que simula a Obras y Materiales (respuestas por ruta, cuenta las llamadas, demora)
   utilidades/dynamodb-prueba.ts    # cliente de DynamoDB Local con tablas de prueba (prefijo por archivo) y limpieza
   utilidades/app-prueba.ts         # app HTTP con tokens de prueba, servidores simulados y DynamoDB Local
+  dynamodb.e2e-spec.ts             # creación de las tablas, claves, TTL, reinicio y DYNAMODB_CREAR_TABLAS=false (DynamoDB Local)
   seguridad.e2e-spec.ts            # /salud, token, rol, X-Dispositivo-Id y X-Request-Id (sin DynamoDB; controlador solo de la prueba)
   *.e2e-spec.ts
 src/**/*.spec.ts                   # unitarias junto al archivo

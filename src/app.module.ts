@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CompartidoModule } from './compartido/compartido.module.js';
+import { DynamoDBModule } from './compartido/infraestructura/dynamodb/dynamodb.module.js';
 import { SaludModule } from './salud/salud.module.js';
 
 @Module({
@@ -8,6 +9,7 @@ import { SaludModule } from './salud/salud.module.js';
     // Lee las variables del archivo .env (no se sube al repositorio)
     ConfigModule.forRoot({ isGlobal: true }),
     CompartidoModule,
+    DynamoDBModule,
     SaludModule,
   ],
 })
