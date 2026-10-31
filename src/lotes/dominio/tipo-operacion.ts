@@ -8,6 +8,11 @@ export interface DefinicionTipo {
   servicio: ServicioDestino;
   /** La operación crea un registro cuyo `id` es el `idOperacion` (`datos.id` debe ser igual). */
   creaRegistro: boolean;
+  /**
+   * La ruta del servicio dueño lleva `datos.obraId` (`POST /obras/{obraId}/…`): sin él, o si no es
+   * texto, la operación es `OPERACION_INVALIDA` (no se puede enviar).
+   */
+  rutaConObra?: boolean;
 }
 
 /**
@@ -20,6 +25,13 @@ export const TIPOS_OPERACION: Readonly<Record<string, DefinicionTipo>> = {
     tipo: 'MOVIMIENTO_MATERIAL',
     servicio: 'materiales',
     creaRegistro: true,
+  },
+  // 102: Obras POST /obras/{datos.obraId}/fotos con { id, partidaId, claveArchivo, tomadaEn }
+  FOTO_AVANCE: {
+    tipo: 'FOTO_AVANCE',
+    servicio: 'obras',
+    creaRegistro: true,
+    rutaConObra: true,
   },
 };
 
@@ -36,7 +48,8 @@ export type ValidacionTipo =
   | { valida: false; status: 400; respuesta: Problema };
 
 /**
- * Comprueba el tipo y, en los que crean un registro, que `idOperacion` sea igual a `datos.id`.
+ * Comprueba el tipo; en los que crean un registro, que `idOperacion` sea igual a `datos.id`; y en
+ * los que van a una ruta de una obra, que venga `datos.obraId`.
  * Si no, el resultado es `ERROR` `400 TIPO_OPERACION_DESCONOCIDO` u `OPERACION_INVALIDA` y la
  * operación no se guarda en DynamoDB.
  */
@@ -64,6 +77,17 @@ export function validarTipo(operacion: OperacionRecibida): ValidacionTipo {
         'OPERACION_INVALIDA',
         'idOperacion debe ser igual a datos.id.',
       ),
+    };
+  }
+  if (
+    definicion.rutaConObra &&
+    (typeof operacion.datos.obraId !== 'string' ||
+      operacion.datos.obraId.trim() === '')
+  ) {
+    return {
+      valida: false,
+      status: 400,
+      respuesta: problema(400, 'OPERACION_INVALIDA', 'Falta datos.obraId.'),
     };
   }
   return { valida: true, definicion };
