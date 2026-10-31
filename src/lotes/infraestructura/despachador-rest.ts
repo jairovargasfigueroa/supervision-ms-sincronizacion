@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MaterialesCliente } from '../../compartido/infraestructura/servicios/materiales.cliente.js';
+import { ObrasCliente } from '../../compartido/infraestructura/servicios/obras.cliente.js';
 import type {
   ContextoEnvio,
   Despachador,
@@ -12,11 +13,16 @@ import type {
 
 /**
  * Llama al servicio dueño de cada tipo (tabla de tipos de operación, 101):
- * `MOVIMIENTO_MATERIAL` → Materiales `POST /movimientos` con cuerpo = `datos`.
+ * - `MOVIMIENTO_MATERIAL` → Materiales `POST /movimientos` con cuerpo = `datos`;
+ * - `FOTO_AVANCE` (102) → Obras `POST /obras/{datos.obraId}/fotos` con
+ *   `{ id, partidaId, claveArchivo, tomadaEn }` (la 301 agregará `deteccion`).
  */
 @Injectable()
 export class DespachadorRest implements Despachador {
-  constructor(private readonly materiales: MaterialesCliente) {}
+  constructor(
+    private readonly materiales: MaterialesCliente,
+    private readonly obras: ObrasCliente,
+  ) {}
 
   enviar(
     definicion: DefinicionTipo,
@@ -26,6 +32,15 @@ export class DespachadorRest implements Despachador {
     switch (definicion.tipo) {
       case 'MOVIMIENTO_MATERIAL':
         return this.materiales.registrarMovimiento(operacion.datos, contexto);
+      case 'FOTO_AVANCE': {
+        const { id, obraId, partidaId, claveArchivo, tomadaEn } =
+          operacion.datos;
+        return this.obras.registrarFoto(
+          String(obraId),
+          { id, partidaId, claveArchivo, tomadaEn },
+          contexto,
+        );
+      }
       default:
         // No pasa: validarTipo solo deja pasar los tipos de la tabla.
         throw new Error(`Tipo sin despachador: ${definicion.tipo}`);

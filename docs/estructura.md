@@ -16,7 +16,8 @@ src/
   configuracion.ts                 # leerConfiguracion: variables de entorno ya convertidas y con valores por defecto (tiempos, URLs, DynamoDB, nombres de tablas)
   compartido/
     compartido.module.ts           # JWKS (CONJUNTO_CLAVES), ValidadorToken, JwtGuard y RolesGuard (APP_GUARD), DispositivoGuard, ValidationPipe (APP_PIPE), filtro (APP_FILTER), middleware X-Request-Id
-    dominio/        error-aplicacion.ts (ErrorAplicacion(codigo, mensaje, status))
+    dominio/        error-aplicacion.ts (ErrorAplicacion(codigo, mensaje, status)), problema.ts (Problem Details propios y genéricos, esProblema),
+                    respuesta-duenio.ts (RespuestaDuenio: RESPUESTA, TIEMPO_AGOTADO o ERROR_RED)
     infraestructura/
       auth/         validador-token.ts (jose + JWKS), jwt.guard.ts (global), publico.decorator.ts (@Publico),
                     usuario-autenticado.ts (id, nombre, roles, azp y token crudo para reenviarlo), roles.guard.ts (global, después de JwtGuard),
@@ -35,18 +36,26 @@ src/
     infraestructura/     estado-dispositivo.repositorio.dynamo.ts (UpdateItem)
     dispositivos.module.ts
   lotes/                           # POST /lotes
-    dominio/        tipo-operacion.ts (TIPOS_OPERACION: tipo → servicio destino y creaRegistro; validarTipo: TIPO_OPERACION_DESCONOCIDO, OPERACION_INVALIDA),
-                    clasificacion.ts (clasificarRespuesta: PROCESADO, ERROR, REINTENTAR), problema.ts (Problem Details propios y genéricos),
+    dominio/        tipo-operacion.ts (TIPOS_OPERACION: tipo → servicio destino, creaRegistro y rutaConObra; validarTipo: TIPO_OPERACION_DESCONOCIDO, OPERACION_INVALIDA),
+                    clasificacion.ts (clasificarRespuesta: PROCESADO, ERROR, REINTENTAR),
                     operacion.ts (OperacionProcesada, ResultadoOperacion, calcularExpiraEn: +30 días, decidirAnteExistente: AJENA, REPETIDA, TOMAR si pasó 60 s, EN_PROCESO),
                     presupuesto.ts (Presupuesto del lote: 20 s)
     aplicacion/
       puertos/      operacion-procesada.repositorio.ts (crearSiNoExiste, leer, tomar, completar, liberar), despachador.ts (enviar(definicion, operacion, contexto))
       casos-uso/    procesar-lote.caso-uso.ts (en orden; DynamoDB caído → REINTENTAR 503; al final, estado_dispositivo)
     infraestructura/
-      operacion-procesada.repositorio.dynamo.ts, despachador-rest.ts (MOVIMIENTO_MATERIAL → Materiales POST /movimientos)
+      operacion-procesada.repositorio.dynamo.ts, despachador-rest.ts (MOVIMIENTO_MATERIAL → Materiales POST /movimientos; FOTO_AVANCE → Obras POST /obras/{obraId}/fotos)
     presentacion/
       lotes.controller.ts (cuerpo sin tipo: lo valida validarLote, no el ValidationPipe global), dto/lote.dto.ts (validarLote: 400 LOTE_INVALIDO, 1 a 20, sin ids repetidos), dto/resultado-lote.respuesta.ts
     lotes.module.ts
+  fotos/                           # POST /fotos/url-subida (102): sin estado
+    dominio/        respuesta-url-subida.ts (traducirRespuestaUrlSubida: 2xx tal cual, 4xx mismo status y codigo, 5xx → 503, tiempo → 504)
+    aplicacion/
+      puertos/      servicio-fotos.ts (pedirUrlSubida)
+      casos-uso/    pedir-url-subida.caso-uso.ts
+    infraestructura/ servicio-fotos.rest.ts (Obras POST /obras/{obraId}/fotos/url-subida)
+    presentacion/   fotos.controller.ts (@Roles('maestro')), dto/url-subida.dto.ts (obraId y fotoId UUID)
+    fotos.module.ts
   paquete-datos/                   # GET /paquete-datos
     dominio/        paquete-datos.ts (tipos y ordenarContenido: listas por id, stock por materialId), version-datos.ts (jsonCanonico y calcularVersionDatos: SHA-256)
     aplicacion/
@@ -63,7 +72,9 @@ test/
   app.e2e-spec.ts                  # AppModule completo: /salud y el recorrido de la 101 (paquete, 304, lote, reenvío sin duplicar, versión nueva)
   clientes-rest.e2e-spec.ts        # ObrasCliente y MaterialesCliente contra servidores simulados: token, X-Request-Id, rutas, tiempo agotado, error de red
   dynamodb.e2e-spec.ts             # creación de las tablas, claves, TTL, reinicio y DYNAMODB_CREAR_TABLAS=false (DynamoDB Local)
+  fotos.e2e-spec.ts                # POST /fotos/url-subida (102): respuesta tal cual, 4xx igual, 503, 504, validación, roles
   http.e2e-spec.ts                 # gzip con Accept-Encoding, 413 ARCHIVO_DEMASIADO_GRANDE pasando los 256 KB, JSON mal escrito
+  lotes-fotos.e2e-spec.ts          # FOTO_AVANCE (102): llega a Obras con claveArchivo, repetida sin segunda llamada, 422, sin obraId, lote mixto
   lotes.e2e-spec.ts                # POST /lotes: nueva, repetida, simultánea, rechazo, reintento, PROCESANDO abandonado, ajena, lote inválido, tipo desconocido, presupuesto, estado_dispositivo
   paquete-datos.e2e-spec.ts        # GET /paquete-datos: campos, orden, ETag y 304, versión, páginas, 503, 504, stock vacío ante 404, estado_dispositivo, roles
   seguridad.e2e-spec.ts            # /salud, token, rol, X-Dispositivo-Id y X-Request-Id (sin DynamoDB; controlador solo de la prueba)

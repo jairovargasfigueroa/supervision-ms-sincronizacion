@@ -30,7 +30,7 @@ Configuración local: copiar `.env.example` a `.env` y completar. **`.env` nunca
 ## Arquitectura: Clean Architecture
 
 ```
-src/<modulo>/          lotes, paquete-datos, dispositivos, salud
+src/<modulo>/          lotes, paquete-datos, fotos, dispositivos, salud
   dominio/          tipos de operación, clasificación de respuestas, versión de datos; sin NestJS ni AWS SDK
   aplicacion/       casos de uso (ProcesarLote, ArmarPaqueteDatos) e interfaces de puertos
   infraestructura/  repositorios DynamoDB, clientes REST de Obras y Materiales

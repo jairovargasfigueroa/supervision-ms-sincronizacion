@@ -9,7 +9,7 @@ Sin token ni `X-Dispositivo-Id` · `200 {"estado":"ok"}` (no toca DynamoDB ni lo
 
 ### Encabezados comunes (todas las rutas salvo `/salud`)
 - `Authorization: Bearer <token>`: se valida firma (JWKS del realm), vencimiento, emisor `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}` y audiencia `plataforma-api` con `jose`. Sin token o con uno inválido: `401 NO_AUTENTICADO` (también en rutas que no existen); si Keycloak no responde al pedir el JWKS: `503 SERVICIO_NO_DISPONIBLE`. Con token válido, una ruta que no existe responde `404 RUTA_NO_ENCONTRADA`.
-- Roles: `maestro` y `almacenero` (contados con los roles efectivos según `azp`, convenciones, «Usuario con varios roles»). Con otro rol: `403 SIN_PERMISO`. Las reglas finas (obras asignadas, rol por endpoint) las aplica el servicio dueño.
+- Roles: `maestro` y `almacenero` (`POST /fotos/url-subida`: solo `maestro`), contados con los roles efectivos según `azp`, convenciones, «Usuario con varios roles». Con otro rol: `403 SIN_PERMISO`. Las reglas finas (obras asignadas, rol por endpoint) las aplica el servicio dueño.
 - `X-Dispositivo-Id: <uuid>` obligatorio (UUID del celular). Falta o no es UUID: `400 DISPOSITIVO_REQUERIDO`. Se comprueba después del token y del rol.
 - `X-Request-Id`: si llega se usa (hasta 128 caracteres `A-Z a-z 0-9 . _ : -`), si no se genera un UUID; se reenvía a los servicios dueños y siempre vuelve en la respuesta.
 
@@ -37,6 +37,16 @@ Devuelve `200` con `ETag: "<versionDatos>"`, o `304` sin cuerpo si la versión n
 - `obraActivaId` opcional (UUID); solo se guarda en `estado_dispositivo`.
 - Actualiza `estado_dispositivo` (`usuario_id`, `obra_id` si vino `obraActivaId`, `version_datos`, `ultima_sincronizacion`), también cuando responde `304`.
 - Errores: `401` · `403 SIN_PERMISO` · `400 DISPOSITIVO_REQUERIDO` · `400 DATOS_INVALIDOS` (`obraActivaId` que no es UUID) · `503 SERVICIO_NO_DISPONIBLE` si Obras o Materiales fallan (error de red o respuesta inesperada) · `504 TIEMPO_AGOTADO` si alguno tarda más de 5 s. Cualquier respuesta que no sea `2xx` de Obras o Materiales (salvo el `404` del stock) cuenta como falla.
+
+### POST /fotos/url-subida · 102
+Roles: `maestro` (los mismos que `POST /obras/{obraId}/fotos/url-subida` de Obras desde la app). Recibe `{ "obraId": "uuid", "fotoId": "uuid" }`.
+
+Reenvía a Obras `POST /obras/{obraId}/fotos/url-subida { fotoId }` con el token del usuario (tiempo máximo 5 s) y devuelve su respuesta tal cual, con el mismo estado: `{ "url": "https://…", "claveArchivo": "fotos/{obraId}/{fotoId}.jpg", "expiraEn": "…" }`. La app sube la foto con `PUT` directo a esa URL (vence a los 10 minutos: se pide una nueva en cada intento).
+
+- `400`, `403`, `404` o `422` de Obras (y cualquier otro `4xx`) → mismo `status` y `codigo` (también `detail` y `errores`).
+- `5xx` de Obras, otra respuesta o error de red → `503 SERVICIO_NO_DISPONIBLE`; tiempo agotado → `504 TIEMPO_AGOTADO`.
+- `400 DATOS_INVALIDOS` si `obraId` o `fotoId` faltan o no son UUID (sin llamar a Obras).
+- Sin estado: no guarda nada en DynamoDB.
 
 ### POST /lotes · 101
 Roles: `maestro`, `almacenero`. Cuerpo de hasta 256 KB (más: `413 ARCHIVO_DEMASIADO_GRANDE`).
@@ -78,9 +88,11 @@ Roles: `maestro`, `almacenero`. Cuerpo de hasta 256 KB (más: `413 ARCHIVO_DEMAS
 | `tipo` | Servicio | Llamada | Espec. |
 |---|---|---|---|
 | `MOVIMIENTO_MATERIAL` | Materiales | `POST /movimientos` con cuerpo = `datos` | 101 |
+| `FOTO_AVANCE` | Obras | `POST /obras/{datos.obraId}/fotos` con `{ id, partidaId, claveArchivo, tomadaEn }` de `datos` (la 301 agrega `deteccion`) | 102 |
 
 - `tipo` que no está en la tabla → `ERROR` con `400 TIPO_OPERACION_DESCONOCIDO` (no se guarda en DynamoDB).
-- En los tipos que crean un registro (`MOVIMIENTO_MATERIAL`), `idOperacion` debe ser igual a `datos.id`; si no → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
+- En los tipos que crean un registro (`MOVIMIENTO_MATERIAL`, `FOTO_AVANCE`), `idOperacion` debe ser igual a `datos.id` (en `FOTO_AVANCE`, el `fotoId`); si no → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
+- En los tipos cuya ruta lleva la obra (`FOTO_AVANCE`), sin `datos.obraId` de texto → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
 
 #### Procesamiento de cada operación (en orden, una tras otra)
 
@@ -112,6 +124,8 @@ Errores del lote completo: `400 LOTE_INVALIDO` · `401` · `403 SIN_PERMISO` · 
 | Materiales (`MATERIALES_URL`) | `GET /materiales?soloActivos=true&pagina=&tamano=100` | materiales activos del paquete |
 | Materiales | `GET /obras/{obraId}/stock` | stock de cada obra (`404` → `[]`) |
 | Materiales | `POST /movimientos` | operación `MOVIMIENTO_MATERIAL` |
+| Obras | `POST /obras/{obraId}/fotos/url-subida` | `POST /fotos/url-subida` (102) |
+| Obras | `POST /obras/{obraId}/fotos` | operación `FOTO_AVANCE` (102) |
 
 ## Eventos
 

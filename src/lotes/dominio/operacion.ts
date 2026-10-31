@@ -1,5 +1,5 @@
 import type { EstadoResultado } from './clasificacion.js';
-import { problema, type Problema } from './problema.js';
+import { problema, type Problema } from '../../compartido/dominio/problema.js';
 import type { OperacionRecibida, ServicioDestino } from './tipo-operacion.js';
 
 /** Estado guardado en `operacion_procesada` (`docs/datos.md`). */

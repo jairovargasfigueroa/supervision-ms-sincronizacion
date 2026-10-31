@@ -27,7 +27,7 @@ describe('tipos de operación', () => {
     });
   });
 
-  it.each(['FOTO_AVANCE', 'OTRO', 'toString', '__proto__'])(
+  it.each(['TIPO_INVENTADO', 'OTRO', 'toString', '__proto__'])(
     'un tipo que no está en la tabla (%s) → 400 TIPO_OPERACION_DESCONOCIDO',
     (tipo) => {
       expect(validarTipo(operacion(tipo, { id: ID }))).toMatchObject({
@@ -50,6 +50,32 @@ describe('tipos de operación', () => {
         status: 400,
         codigo: 'OPERACION_INVALIDA',
       },
+    });
+  });
+
+  describe('FOTO_AVANCE (102)', () => {
+    it('va a Obras, crea un registro y necesita datos.obraId', () => {
+      expect(TIPOS_OPERACION.FOTO_AVANCE).toEqual({
+        tipo: 'FOTO_AVANCE',
+        servicio: 'obras',
+        creaRegistro: true,
+        rutaConObra: true,
+      });
+      expect(
+        validarTipo(operacion('FOTO_AVANCE', { id: ID, obraId: 'obra-1' })),
+      ).toMatchObject({ valida: true });
+    });
+
+    it.each([
+      ['sin obraId', { id: ID }],
+      ['obraId vacío', { id: ID, obraId: ' ' }],
+      ['obraId que no es texto', { id: ID, obraId: 5 }],
+      ['datos.id distinto', { id: 'otro', obraId: 'obra-1' }],
+    ])('%s → 400 OPERACION_INVALIDA', (_caso, datos) => {
+      expect(validarTipo(operacion('FOTO_AVANCE', datos))).toMatchObject({
+        valida: false,
+        respuesta: { codigo: 'OPERACION_INVALIDA' },
+      });
     });
   });
 });

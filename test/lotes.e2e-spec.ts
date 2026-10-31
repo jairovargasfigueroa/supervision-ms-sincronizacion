@@ -425,7 +425,7 @@ describe('POST /lotes (e2e)', () => {
 
   it('un tipo desconocido → ERROR 400 TIPO_OPERACION_DESCONOCIDO, sin guardar ni llamar', async () => {
     aceptarMovimientos();
-    const desconocida = { ...movimiento(), tipo: 'FOTO_AVANCE' };
+    const desconocida = { ...movimiento(), tipo: 'TIPO_INVENTADO' };
     const normal = movimiento();
 
     const respuesta = await enviar({
