@@ -60,6 +60,7 @@ test/
   utilidades/servidor-simulado.ts  # servidor HTTP de prueba que simula a Obras y Materiales (respuestas por ruta, cuenta las llamadas, demora)
   utilidades/dynamodb-prueba.ts    # cliente de DynamoDB Local con tablas de prueba (prefijo por archivo) y limpieza
   utilidades/app-prueba.ts         # app HTTP con tokens de prueba, servidores simulados y DynamoDB Local
+  app.e2e-spec.ts                  # AppModule completo: /salud y el recorrido de la 101 (paquete, 304, lote, reenvío sin duplicar, versión nueva)
   clientes-rest.e2e-spec.ts        # ObrasCliente y MaterialesCliente contra servidores simulados: token, X-Request-Id, rutas, tiempo agotado, error de red
   dynamodb.e2e-spec.ts             # creación de las tablas, claves, TTL, reinicio y DYNAMODB_CREAR_TABLAS=false (DynamoDB Local)
   http.e2e-spec.ts                 # gzip con Accept-Encoding, 413 ARCHIVO_DEMASIADO_GRANDE pasando los 256 KB, JSON mal escrito
