@@ -41,6 +41,32 @@ export class ObrasCliente {
     );
   }
 
+  /** `POST /obras/{obraId}/diario` (103; operación `ENTRADA_DIARIO`). */
+  registrarDiario(
+    obraId: string,
+    cuerpo: unknown,
+    contexto: ContextoLlamada,
+  ): Promise<ResultadoLlamada> {
+    return this.cliente.llamar(
+      'POST',
+      `/obras/${encodeURIComponent(obraId)}/diario`,
+      contexto,
+      cuerpo,
+    );
+  }
+
+  /** `GET /obras/{obraId}/diario` sin `desde` ni `hasta`: los últimos 30 días (103). */
+  listarDiario(
+    obraId: string,
+    contexto: ContextoLlamada,
+  ): Promise<ResultadoLlamada> {
+    return this.cliente.llamar(
+      'GET',
+      `/obras/${encodeURIComponent(obraId)}/diario`,
+      contexto,
+    );
+  }
+
   /** `GET /obras/{id}`: detalle con las partidas. */
   obtener(
     obraId: string,
