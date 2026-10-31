@@ -34,7 +34,8 @@ src/
     infraestructura/     estado-dispositivo.repositorio.dynamo.ts (UpdateItem)
     dispositivos.module.ts
   lotes/                           # POST /lotes
-    dominio/        tipo-operacion.ts (tabla de tipos → servicio destino, creaRegistro), clasificacion.ts (clasificarRespuesta: PROCESADO, ERROR, REINTENTAR),
+    dominio/        tipo-operacion.ts (TIPOS_OPERACION: tipo → servicio destino y creaRegistro; validarTipo: TIPO_OPERACION_DESCONOCIDO, OPERACION_INVALIDA),
+                    clasificacion.ts (clasificarRespuesta: PROCESADO, ERROR, REINTENTAR), problema.ts (Problem Details propios y genéricos),
                     operacion.ts (Operacion, ResultadoOperacion, OperacionProcesada, estados), presupuesto.ts (Presupuesto del lote)
     aplicacion/
       puertos/      operacion-procesada.repositorio.ts (crearSiNoExiste, leer, tomar, completar, liberar), despachador.ts (enviar(operacion, contexto))
