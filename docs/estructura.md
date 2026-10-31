@@ -11,7 +11,7 @@ NestJS 12, `@nestjs/config`, `class-validator` 0.15 + `class-transformer` 0.5 (c
 ```
 src/
   main.ts                          # registros, configurarApp, puerto 8084
-  configurar-app.ts                # ajustes de Express que comparten main.ts y las pruebas (sin ETag automático; gzip y 256 KB en la 101)
+  configurar-app.ts                # ajustes de Express que comparten main.ts y las pruebas: sin ETag automático, gzip (compression), cuerpo JSON de 256 KB (413)
   app.module.ts
   configuracion.ts                 # leerConfiguracion: variables de entorno ya convertidas y con valores por defecto (tiempos, URLs, DynamoDB, nombres de tablas)
   compartido/
@@ -62,6 +62,7 @@ test/
   utilidades/app-prueba.ts         # app HTTP con tokens de prueba, servidores simulados y DynamoDB Local
   clientes-rest.e2e-spec.ts        # ObrasCliente y MaterialesCliente contra servidores simulados: token, X-Request-Id, rutas, tiempo agotado, error de red
   dynamodb.e2e-spec.ts             # creación de las tablas, claves, TTL, reinicio y DYNAMODB_CREAR_TABLAS=false (DynamoDB Local)
+  http.e2e-spec.ts                 # gzip con Accept-Encoding, 413 ARCHIVO_DEMASIADO_GRANDE pasando los 256 KB, JSON mal escrito
   lotes.e2e-spec.ts                # POST /lotes: nueva, repetida, simultánea, rechazo, reintento, PROCESANDO abandonado, ajena, lote inválido, tipo desconocido, presupuesto, estado_dispositivo
   paquete-datos.e2e-spec.ts        # GET /paquete-datos: campos, orden, ETag y 304, versión, páginas, 503, 504, stock vacío ante 404, estado_dispositivo, roles
   seguridad.e2e-spec.ts            # /salud, token, rol, X-Dispositivo-Id y X-Request-Id (sin DynamoDB; controlador solo de la prueba)
