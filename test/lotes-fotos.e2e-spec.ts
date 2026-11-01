@@ -76,7 +76,7 @@ describe('POST /lotes con FOTO_AVANCE (102, e2e)', () => {
     const respuesta = await enviar([
       {
         ...operacion,
-        // Un campo que la 102 no envía (la 301 agregará `deteccion`): no se reenvía
+        // Un campo que no está en el contrato de FOTO_AVANCE: no se reenvía
         datos: { ...operacion.datos, otro: 'x' },
       },
     ]);
@@ -111,6 +111,86 @@ describe('POST /lotes con FOTO_AVANCE (102, e2e)', () => {
       servicio_destino: 'obras',
       estado: 'PROCESADO',
     });
+  });
+
+  it('con deteccion (301) la reenvía tal cual a Obras junto con la foto', async () => {
+    const deteccion = {
+      personas: 4,
+      sinCasco: 1,
+      sinChaleco: 2,
+      versionModelo: 'epp-1.0.0',
+    };
+    prueba.obras.definir('POST', RUTA_FOTOS, (peticion) => ({
+      status: 201,
+      cuerpo: {
+        ...FOTO_REGISTRADA((peticion.cuerpo as { id: string }).id),
+        deteccion,
+        avisos: [],
+      },
+    }));
+    const operacion = fotoAvance();
+    const respuesta = await enviar([
+      { ...operacion, datos: { ...operacion.datos, deteccion } },
+    ]);
+
+    expect(respuesta.body.resultados[0]).toMatchObject({
+      estado: 'PROCESADO',
+      status: 201,
+      respuesta: { deteccion, avisos: [] },
+    });
+    const [peticion] = prueba.obras.peticiones;
+    expect(peticion.cuerpo).toEqual({
+      id: operacion.idOperacion,
+      partidaId: PARTIDA,
+      claveArchivo: operacion.datos.claveArchivo,
+      tomadaEn: '2026-11-15T15:20:00Z',
+      deteccion,
+    });
+  });
+
+  it('una deteccion que Obras descarta no se rechaza aquí: llega tal cual y queda PROCESADO con el aviso', async () => {
+    // sinCasco > personas y un campo de más: Sincronización no valida la detección
+    const deteccion = {
+      personas: 1,
+      sinCasco: 3,
+      sinChaleco: 0,
+      versionModelo: 'epp-1.0.0',
+      extra: true,
+    };
+    prueba.obras.definir('POST', RUTA_FOTOS, (peticion) => ({
+      status: 201,
+      cuerpo: {
+        ...FOTO_REGISTRADA((peticion.cuerpo as { id: string }).id),
+        deteccion: null,
+        avisos: ['DETECCION_DESCARTADA'],
+      },
+    }));
+    const operacion = fotoAvance();
+    const respuesta = await enviar([
+      { ...operacion, datos: { ...operacion.datos, deteccion } },
+    ]);
+
+    expect(respuesta.body.resultados[0]).toMatchObject({
+      estado: 'PROCESADO',
+      respuesta: { deteccion: null, avisos: ['DETECCION_DESCARTADA'] },
+    });
+    expect(
+      (prueba.obras.peticiones[0].cuerpo as { deteccion: unknown }).deteccion,
+    ).toEqual(deteccion);
+  });
+
+  it('sin deteccion el cuerpo no la lleva; con deteccion null se reenvía null', async () => {
+    aceptarFotos();
+    const sinDeteccion = fotoAvance();
+    const conNull = fotoAvance();
+    await enviar([
+      sinDeteccion,
+      { ...conNull, datos: { ...conNull.datos, deteccion: null } },
+    ]);
+
+    const [primera, segunda] = prueba.obras.peticiones;
+    expect(primera.cuerpo).not.toHaveProperty('deteccion');
+    expect(segunda.cuerpo).toHaveProperty('deteccion', null);
   });
 
   it('repetida no llama dos veces a Obras', async () => {

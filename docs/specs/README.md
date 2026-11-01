@@ -10,3 +10,4 @@ Una carpeta por funcionalidad: `NNN-nombre/` con su `tareas.md`. El número coin
 | 101 · Registro de material sin señal | El servicio: `GET /paquete-datos`, `POST /lotes` con `MOVIMIENTO_MATERIAL`, tablas `operacion_procesada` y `estado_dispositivo` |
 | 102 · Fotos sin señal | Tipo de operación `FOTO_AVANCE` y `POST /fotos/url-subida` |
 | 103 · Diario de obra | Tipo de operación `ENTRADA_DIARIO` y campos del diario en el paquete |
+| 301 · Detección de casco y chaleco | Campo opcional `deteccion` en los `datos` de `FOTO_AVANCE`, reenviado tal cual a Obras |

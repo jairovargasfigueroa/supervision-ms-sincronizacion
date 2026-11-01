@@ -15,7 +15,8 @@ import type {
  * Llama al servicio dueño de cada tipo (tabla de tipos de operación, 101):
  * - `MOVIMIENTO_MATERIAL` → Materiales `POST /movimientos` con cuerpo = `datos`;
  * - `FOTO_AVANCE` (102) → Obras `POST /obras/{datos.obraId}/fotos` con
- *   `{ id, partidaId, claveArchivo, tomadaEn }` (la 301 agregará `deteccion`);
+ *   `{ id, partidaId, claveArchivo, tomadaEn }` y, si viene en `datos`, `deteccion` tal cual (301:
+ *   la valida Obras, que registra la foto sin ella si no es válida);
  * - `ENTRADA_DIARIO` (103) → Obras `POST /obras/{datos.obraId}/diario` con `{ id, fecha, clima, texto }`.
  */
 @Injectable()
@@ -38,7 +39,15 @@ export class DespachadorRest implements Despachador {
           operacion.datos;
         return this.obras.registrarFoto(
           String(obraId),
-          { id, partidaId, claveArchivo, tomadaEn },
+          {
+            id,
+            partidaId,
+            claveArchivo,
+            tomadaEn,
+            ...(Object.hasOwn(operacion.datos, 'deteccion') && {
+              deteccion: operacion.datos.deteccion,
+            }),
+          },
           contexto,
         );
       }

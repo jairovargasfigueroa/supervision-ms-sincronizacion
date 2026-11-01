@@ -27,6 +27,7 @@ export const TIPOS_OPERACION: Readonly<Record<string, DefinicionTipo>> = {
     creaRegistro: true,
   },
   // 102: Obras POST /obras/{datos.obraId}/fotos con { id, partidaId, claveArchivo, tomadaEn }
+  // y la 301 agrega deteccion opcional, reenviada tal cual
   FOTO_AVANCE: {
     tipo: 'FOTO_AVANCE',
     servicio: 'obras',
