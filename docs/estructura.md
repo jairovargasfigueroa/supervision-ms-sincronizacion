@@ -44,7 +44,7 @@ src/
       puertos/      operacion-procesada.repositorio.ts (crearSiNoExiste, leer, tomar, completar, liberar), despachador.ts (enviar(definicion, operacion, contexto))
       casos-uso/    procesar-lote.caso-uso.ts (en orden; DynamoDB caído → REINTENTAR 503; al final, estado_dispositivo)
     infraestructura/
-      operacion-procesada.repositorio.dynamo.ts, despachador-rest.ts (MOVIMIENTO_MATERIAL → Materiales POST /movimientos; FOTO_AVANCE → Obras POST /obras/{obraId}/fotos; ENTRADA_DIARIO → Obras POST /obras/{obraId}/diario)
+      operacion-procesada.repositorio.dynamo.ts, despachador-rest.ts (MOVIMIENTO_MATERIAL → Materiales POST /movimientos; FOTO_AVANCE → Obras POST /obras/{obraId}/fotos, con deteccion tal cual si viene (301); ENTRADA_DIARIO → Obras POST /obras/{obraId}/diario)
     presentacion/
       lotes.controller.ts (cuerpo sin tipo: lo valida validarLote, no el ValidationPipe global), dto/lote.dto.ts (validarLote: 400 LOTE_INVALIDO, 1 a 20, sin ids repetidos), dto/resultado-lote.respuesta.ts
     lotes.module.ts
@@ -75,7 +75,7 @@ test/
   fotos.e2e-spec.ts                # POST /fotos/url-subida (102): respuesta tal cual, 4xx igual, 503, 504, validación, roles
   http.e2e-spec.ts                 # gzip con Accept-Encoding, 413 ARCHIVO_DEMASIADO_GRANDE pasando los 256 KB, JSON mal escrito
   lotes-diario.e2e-spec.ts         # ENTRADA_DIARIO (103): llega a Obras con id, fecha, clima y texto, repetida, rechazos, sin obraId
-  lotes-fotos.e2e-spec.ts          # FOTO_AVANCE (102): llega a Obras con claveArchivo, repetida sin segunda llamada, 422, sin obraId, lote mixto
+  lotes-fotos.e2e-spec.ts          # FOTO_AVANCE (102): llega a Obras con claveArchivo, repetida sin segunda llamada, 422, sin obraId, lote mixto; 301: deteccion tal cual (también inválida o null) y sin ella no se agrega
   lotes.e2e-spec.ts                # POST /lotes: nueva, repetida, simultánea, rechazo, reintento, PROCESANDO abandonado, ajena, lote inválido, tipo desconocido, presupuesto, estado_dispositivo
   paquete-diario.e2e-spec.ts       # diario en el paquete (103): solo maestro, campos, 403/404 → [], versión, 5xx → 503
   paquete-datos.e2e-spec.ts        # GET /paquete-datos: campos, orden, ETag y 304, versión, páginas, 503, 504, stock vacío ante 404, estado_dispositivo, roles

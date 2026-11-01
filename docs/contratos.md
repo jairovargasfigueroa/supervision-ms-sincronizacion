@@ -90,9 +90,10 @@ Roles: `maestro`, `almacenero`. Cuerpo de hasta 256 KB (más: `413 ARCHIVO_DEMAS
 | `tipo` | Servicio | Llamada | Espec. |
 |---|---|---|---|
 | `MOVIMIENTO_MATERIAL` | Materiales | `POST /movimientos` con cuerpo = `datos` | 101 |
-| `FOTO_AVANCE` | Obras | `POST /obras/{datos.obraId}/fotos` con `{ id, partidaId, claveArchivo, tomadaEn }` de `datos` (la 301 agrega `deteccion`) | 102 |
+| `FOTO_AVANCE` | Obras | `POST /obras/{datos.obraId}/fotos` con `{ id, partidaId, claveArchivo, tomadaEn, deteccion? }` de `datos` | 102, 301 |
 | `ENTRADA_DIARIO` | Obras | `POST /obras/{datos.obraId}/diario` con `{ id, fecha, clima, texto }` de `datos` | 103 |
 
+- `FOTO_AVANCE` (301): `datos = { id, obraId, partidaId, claveArchivo, tomadaEn, deteccion? }`, con `deteccion = { personas, sinCasco, sinChaleco, versionModelo }` (detección de casco y chaleco hecha en el celular). Si `datos` trae `deteccion` (aunque sea `null`), se reenvía **tal cual** a Obras; si no la trae, el cuerpo a Obras no la lleva. Sincronización no la valida: Obras registra la foto igual y, si no es válida, responde con `deteccion: null` y `avisos: ["DETECCION_DESCARTADA"]` (esa respuesta se guarda y se devuelve como cualquier otra). Otros campos de `datos` que no están en la lista no se reenvían.
 - `tipo` que no está en la tabla → `ERROR` con `400 TIPO_OPERACION_DESCONOCIDO` (no se guarda en DynamoDB).
 - En los tipos que crean un registro (`MOVIMIENTO_MATERIAL`, `FOTO_AVANCE`, `ENTRADA_DIARIO`), `idOperacion` debe ser igual a `datos.id` (en `FOTO_AVANCE`, el `fotoId`); si no → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
 - En los tipos cuya ruta lleva la obra (`FOTO_AVANCE`, `ENTRADA_DIARIO`), sin `datos.obraId` de texto → `ERROR` con `400 OPERACION_INVALIDA` (no se guarda).
@@ -128,7 +129,7 @@ Errores del lote completo: `400 LOTE_INVALIDO` · `401` · `403 SIN_PERMISO` · 
 | Materiales | `GET /obras/{obraId}/stock` | stock de cada obra (`404` → `[]`) |
 | Materiales | `POST /movimientos` | operación `MOVIMIENTO_MATERIAL` |
 | Obras | `POST /obras/{obraId}/fotos/url-subida` | `POST /fotos/url-subida` (102) |
-| Obras | `POST /obras/{obraId}/fotos` | operación `FOTO_AVANCE` (102) |
+| Obras | `POST /obras/{obraId}/fotos` | operación `FOTO_AVANCE` (102; con `deteccion` desde la 301) |
 | Obras | `POST /obras/{obraId}/diario` | operación `ENTRADA_DIARIO` (103) |
 | Obras | `GET /obras/{obraId}/diario` | `diario` de cada obra en el paquete del maestro (103; `403`/`404` → `[]`) |
 
