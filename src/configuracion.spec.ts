@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { leerConfiguracion } from './configuracion.js';
+import { leerConfiguracion, leerUrlServicio } from './configuracion.js';
 
 const leer = (valores: Record<string, string>) =>
   leerConfiguracion(new ConfigService(valores));
@@ -42,10 +42,32 @@ describe('leerConfiguracion', () => {
     const config = leer({
       DYNAMODB_ENDPOINT: '  ',
       TIEMPO_MAXIMO_LOTE_MS: 'abc',
-      OBRAS_URL: 'http://obras:8081/',
     });
     expect(config.dynamodb.endpoint).toBeUndefined();
     expect(config.tiempoMaximoLoteMs).toBe(20000);
-    expect(config.obrasUrl).toBe('http://obras:8081');
   });
+});
+
+describe('leerUrlServicio (601: sin direcciones fijas)', () => {
+  it('lee OBRAS_URL y MATERIALES_URL sin la barra final', () => {
+    const config = new ConfigService({
+      OBRAS_URL: ' https://obras.azure.localhost:8443/ ',
+      MATERIALES_URL: 'http://materiales:8082//',
+    });
+    expect(leerUrlServicio(config, 'OBRAS_URL')).toBe(
+      'https://obras.azure.localhost:8443',
+    );
+    expect(leerUrlServicio(config, 'MATERIALES_URL')).toBe(
+      'http://materiales:8082',
+    );
+  });
+
+  it.each([{}, { OBRAS_URL: '' }, { OBRAS_URL: '   ' }])(
+    'sin valor no usa uno por defecto: falla (%o)',
+    (valores) => {
+      expect(() =>
+        leerUrlServicio(new ConfigService(valores), 'OBRAS_URL'),
+      ).toThrow(/Falta OBRAS_URL/);
+    },
+  );
 });
