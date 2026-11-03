@@ -111,6 +111,11 @@ Dockerfile        dos etapas sobre node:24.22.0-alpine3.24: `construir` (npm ci,
                   (package.json, node_modules de producción y dist; NODE_ENV=production, PORT=8084, usuario `node`,
                   HEALTHCHECK con fetch a /salud, etiqueta OCI `org.opencontainers.image.source`; CMD node dist/main.js)
 .dockerignore     .git, node_modules, dist, .env*, *.log, coverage, test, docs y el resto de la lista común
+.github/workflows/ci.yml
+                  job `prueba` (npm ci, lint, formato, tipos con tsc --noEmit, pruebas unitarias, e2e con DynamoDB Local
+                  amazon/dynamodb-local:3.3.2 como servicio del job, compilación) y job `imagen` (en PR: build sin publicar;
+                  en push a main: push a ghcr.io/jairovargasfigueroa/supervision-ms-sincronizacion con sha-<7> y main;
+                  caché de capas type=gha; solo GITHUB_TOKEN)
 ```
 
 - Sin adaptador de Lambda: si la 602 pone el servicio en Lambda, lo agrega allá.
