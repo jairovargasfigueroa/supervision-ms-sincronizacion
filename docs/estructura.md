@@ -101,3 +101,17 @@ src/**/*.spec.ts                   # unitarias junto al archivo
 - Unitarias del dominio (clasificación, versión de datos, presupuesto) y de los casos de uso con dobles en memoria.
 - `test/*.e2e-spec.ts` con DynamoDB Local (`docker compose up -d dynamodb` en infra; `DYNAMODB_ENDPOINT`, por defecto `http://localhost:8000`) y servidores simulados de Obras y Materiales.
 - `npm test` y `npm run test:e2e` (los archivos e2e corren de a uno).
+
+## Imagen y CI (601)
+
+En la raíz del proyecto:
+
+```
+Dockerfile        dos etapas sobre node:24.22.0-alpine3.24: `construir` (npm ci, npm run build, npm prune --omit=dev) y `final`
+                  (package.json, node_modules de producción y dist; NODE_ENV=production, PORT=8084, usuario `node`,
+                  HEALTHCHECK con fetch a /salud, etiqueta OCI `org.opencontainers.image.source`; CMD node dist/main.js)
+.dockerignore     .git, node_modules, dist, .env*, *.log, coverage, test, docs y el resto de la lista común
+```
+
+- Sin adaptador de Lambda: si la 602 pone el servicio en Lambda, lo agrega allá.
+- Las pruebas no corren dentro del `docker build`: corren antes, en el workflow.
