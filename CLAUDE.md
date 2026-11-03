@@ -27,6 +27,12 @@ npm run lint
 
 Configuración local: copiar `.env.example` a `.env` y completar. **`.env` nunca se sube.**
 
+## Despliegue (601)
+
+- Imagen: `Dockerfile` en dos etapas (`construir` con `npm ci`, `npm run build` y `npm prune --omit=dev`; `final` con `node dist/main.js`, usuario `node`, `HEALTHCHECK` contra `GET /salud`, puerto 8084). Sin adaptador de Lambda (si la 602 la pone en Lambda, lo agrega allá). La imagen no trae configuración: todo entra por variables al arrancar.
+- Modo producción: `NODE_ENV=production` (registros en JSON; los errores nunca muestran trazas al usuario). `OBRAS_URL` y `MATERIALES_URL` son obligatorias (sin valor por defecto en el código); con `https://` entre nubes. En AWS, `DYNAMODB_ENDPOINT` vacío, sin `AWS_ACCESS_KEY_ID` (credenciales del entorno) y `DYNAMODB_CREAR_TABLAS=false`. Una CA adicional (ensayo local) entra con `NODE_EXTRA_CA_CERTS`, sin cambiar el código.
+- CI: `.github/workflows/ci.yml`; en cada *pull request* a `develop` o `main`, lint, tipos, pruebas unitarias y e2e (con DynamoDB Local como servicio), compilación y la imagen sin publicar; en *push* a `main`, publica `ghcr.io/jairovargasfigueroa/supervision-ms-sincronizacion` con `sha-<7>` y `main`.
+
 ## Arquitectura: Clean Architecture
 
 ```
