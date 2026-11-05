@@ -29,8 +29,6 @@ jobs:
         image: amazon/dynamodb-local:3.3.2
         ports:
           - 8000:8000
-    env:
-      DYNAMODB_ENDPOINT: http://localhost:8000
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -46,15 +44,19 @@ jobs:
         run: npx tsc --noEmit -p tsconfig.json
       - name: Pruebas unitarias
         run: npm test
+      # Solo los pasos que usan DynamoDB Local llevan su dirección: las pruebas unitarias leen la configuración
+      # sin ella (ConfigService también mira process.env)
       - name: Esperar a DynamoDB Local
         run: |
           for _ in $(seq 1 60); do
-            curl -s -o /dev/null "$DYNAMODB_ENDPOINT" && exit 0
+            curl -s -o /dev/null http://localhost:8000 && exit 0
             sleep 1
           done
           echo "DynamoDB Local no respondió en 60 s" >&2
           exit 1
       - name: Pruebas e2e
+        env:
+          DYNAMODB_ENDPOINT: http://localhost:8000
         run: npm run test:e2e
       - name: Compilación
         run: npm run build
