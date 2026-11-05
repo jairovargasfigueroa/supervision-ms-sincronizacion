@@ -11,5 +11,7 @@ export default defineConfig({
     fileParallelism: false,
     // La primera carga de Nest y la generación de claves RSA pueden tardar en una máquina ocupada.
     hookTimeout: 30_000,
+    // DynamoDB Local recién levantado (el servicio del job de CI, 601) tarda en crear las primeras tablas.
+    testTimeout: 15_000,
   },
 });

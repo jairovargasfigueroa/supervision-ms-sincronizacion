@@ -13,7 +13,7 @@ src/
   main.ts                          # registros, configurarApp, puerto 8084
   configurar-app.ts                # ajustes de Express que comparten main.ts y las pruebas: sin ETag automático, gzip (compression), cuerpo JSON de 256 KB (413)
   app.module.ts
-  configuracion.ts                 # leerConfiguracion: variables de entorno ya convertidas y con valores por defecto (tiempos, URLs, DynamoDB, nombres de tablas)
+  configuracion.ts                 # leerConfiguracion: variables de entorno ya convertidas y con valores por defecto (tiempos, DynamoDB, nombres de tablas); leerUrlServicio: OBRAS_URL y MATERIALES_URL obligatorias, sin valor por defecto (601)
   compartido/
     compartido.module.ts           # JWKS (CONJUNTO_CLAVES), ValidadorToken, JwtGuard y RolesGuard (APP_GUARD), DispositivoGuard, ValidationPipe (APP_PIPE), filtro (APP_FILTER), middleware X-Request-Id
     dominio/        error-aplicacion.ts (ErrorAplicacion(codigo, mensaje, status)), problema.ts (Problem Details propios y genéricos, esProblema),
@@ -93,6 +93,7 @@ src/**/*.spec.ts                   # unitarias junto al archivo
 - El token del usuario se reenvía tal cual a los servicios dueños (`UsuarioAutenticado.token`); nunca se registra.
 - Cada petición se registra con su `X-Request-Id` (método, ruta sin la consulta, estado y duración); `POST /lotes` registra además un renglón por operación (`idOperacion`, `tipo`, resultado, `status`). Nunca encabezados, tokens ni `datos`.
 - Los nombres de las tablas salen de la configuración (`TABLA_OPERACION_PROCESADA`, `TABLA_ESTADO_DISPOSITIVO`; por defecto `operacion_procesada` y `estado_dispositivo`) para que las pruebas usen tablas propias.
+- Configuración solo por variables (601): ninguna dirección de otro servicio, de Keycloak ni de DynamoDB en el código (`KEYCLOAK_URL`, `KEYCLOAK_REALM` y `AUDIENCIA` con `getOrThrow`; `OBRAS_URL` y `MATERIALES_URL` con `leerUrlServicio`: si faltan, el servicio no arranca). `NODE_ENV=production`: registros en JSON (`main.ts`); Problem Details nunca lleva la traza (solo se registra). Una CA adicional (ensayo local) con `NODE_EXTRA_CA_CERTS`.
 - Nombres de archivo en `kebab-case` con sufijo de tipo (`.caso-uso.ts`, `.controller.ts`, `.dto.ts`, `.repositorio.dynamo.ts`); clases en español.
 
 ## Pruebas
@@ -100,3 +101,22 @@ src/**/*.spec.ts                   # unitarias junto al archivo
 - Unitarias del dominio (clasificación, versión de datos, presupuesto) y de los casos de uso con dobles en memoria.
 - `test/*.e2e-spec.ts` con DynamoDB Local (`docker compose up -d dynamodb` en infra; `DYNAMODB_ENDPOINT`, por defecto `http://localhost:8000`) y servidores simulados de Obras y Materiales.
 - `npm test` y `npm run test:e2e` (los archivos e2e corren de a uno).
+
+## Imagen y CI (601)
+
+En la raíz del proyecto:
+
+```
+Dockerfile        dos etapas sobre node:24.22.0-alpine3.24: `construir` (npm ci, npm run build, npm prune --omit=dev) y `final`
+                  (package.json, node_modules de producción y dist; NODE_ENV=production, PORT=8084, usuario `node`,
+                  HEALTHCHECK con fetch a /salud, etiqueta OCI `org.opencontainers.image.source`; CMD node dist/main.js)
+.dockerignore     .git, node_modules, dist, .env*, *.log, coverage, test, docs y el resto de la lista común
+.github/workflows/ci.yml
+                  job `prueba` (npm ci, lint, formato, tipos con tsc --noEmit, pruebas unitarias, e2e con DynamoDB Local
+                  amazon/dynamodb-local:3.3.2 como servicio del job, compilación) y job `imagen` (en PR: build sin publicar;
+                  en push a main: push a ghcr.io/jairovargasfigueroa/supervision-ms-sincronizacion con sha-<7> y main;
+                  caché de capas type=gha; solo GITHUB_TOKEN)
+```
+
+- Sin adaptador de Lambda: si la 602 pone el servicio en Lambda, lo agrega allá.
+- Las pruebas no corren dentro del `docker build`: corren antes, en el workflow.
