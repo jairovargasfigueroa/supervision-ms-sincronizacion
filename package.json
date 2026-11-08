@@ -1,6 +1,6 @@
 {
   "name": "sincronizacion",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Servicio de Sincronización de la Plataforma de supervisión de obras (capa 1)",
   "private": true,
   "license": "UNLICENSED",
