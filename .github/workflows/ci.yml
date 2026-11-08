@@ -1,0 +1,94 @@
+# 601: en cada pull request a develop o main, lint, formato, tipos, pruebas (unitarias y e2e con
+# DynamoDB Local), compilación y la imagen sin publicar; en push a main (release), además publica la
+# imagen en GHCR con sha-<7> y main. Sin secretos de la aplicación: solo el GITHUB_TOKEN para publicar.
+name: ci
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGEN: ghcr.io/jairovargasfigueroa/supervision-ms-sincronizacion
+
+jobs:
+  prueba:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      # La misma versión que el Docker Compose de infra; las pruebas crean sus propias tablas
+      dynamodb:
+        image: amazon/dynamodb-local:3.3.2
+        ports:
+          - 8000:8000
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Formato
+        run: npm run format:check
+      - name: Tipos
+        run: npx tsc --noEmit -p tsconfig.json
+      - name: Pruebas unitarias
+        run: npm test
+      # Solo los pasos que usan DynamoDB Local llevan su dirección: las pruebas unitarias leen la configuración
+      # sin ella (ConfigService también mira process.env)
+      - name: Esperar a DynamoDB Local
+        run: |
+          for _ in $(seq 1 60); do
+            curl -s -o /dev/null http://localhost:8000 && exit 0
+            sleep 1
+          done
+          echo "DynamoDB Local no respondió en 60 s" >&2
+          exit 1
+      - name: Pruebas e2e
+        env:
+          DYNAMODB_ENDPOINT: http://localhost:8000
+        run: npm run test:e2e
+      - name: Compilación
+        run: npm run build
+
+  imagen:
+    needs: prueba
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Etiqueta sha-<7>
+        id: etiqueta
+        run: echo "sha=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - name: Iniciar sesión en GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # En un PR solo construye; en push a main construye y publica
+      - name: Imagen
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.IMAGEN }}:${{ steps.etiqueta.outputs.sha }}
+            ${{ env.IMAGEN }}:main
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
